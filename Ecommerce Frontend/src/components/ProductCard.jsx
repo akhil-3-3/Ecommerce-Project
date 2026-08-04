@@ -5,6 +5,7 @@ import { getReviews } from "../api/reviewApi";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { addToCart } from "../api/cartApi";
+import { addToWishlist } from "../api/wishlistApi";
 
 function ProductCard({ product }) {
   const [reviews, setReviews] = useState([]);
@@ -80,8 +81,15 @@ function ProductCard({ product }) {
           {/* Heart should NOT trigger card navigation */}
           <button
             type="button"
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation();
+
+              try {
+                await addToWishlist(product.productId);
+                alert("Added to Wishlist");
+              } catch (err) {
+                console.log(err);
+              }
             }}
             className="absolute right-3 top-3 rounded-full bg-white p-2 shadow-md"
           >

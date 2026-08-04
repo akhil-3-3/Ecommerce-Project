@@ -4,8 +4,8 @@ DROP DATABASE Ecommerce_DB ;
 
 USE Ecommerce_DB;
 GO
-SELECT ProductId, ProductName FROM Products;
-select * from categories;
+
+select * from users;
 UPDATE Categories
 SET CategoryName = 'Indian Perfumes'
 WHERE CategoryId = 1;
@@ -211,7 +211,39 @@ CREATE TABLE Stock
         ON DELETE CASCADE
 );
 ----------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE Cart
+(
+    CartId INT PRIMARY KEY IDENTITY,
+    UserId INT NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE CartItems
+(
+    CartItemId INT PRIMARY KEY IDENTITY,
+    CartId INT NOT NULL,
+    ProductId INT NOT NULL,
+    Quantity INT NOT NULL DEFAULT 1,
+
+    FOREIGN KEY (CartId) REFERENCES Cart(CartId),
+    FOREIGN KEY (ProductId) REFERENCES Products(ProductId)
+);
 ----------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE Wishlist
+(
+    WishlistId INT PRIMARY KEY IDENTITY,
+    UserId INT NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+CREATE TABLE WishlistItems
+(
+    WishlistItemId INT PRIMARY KEY IDENTITY,
+    WishlistId INT NOT NULL,
+    ProductId INT NOT NULL,
+
+    FOREIGN KEY (WishlistId) REFERENCES Wishlist(WishlistId),
+    FOREIGN KEY (ProductId) REFERENCES Products(ProductId)
+);
 ----------------------------------------------------------------------------------------------------------------------------------
 INSERT INTO Categories (CategoryName)
 VALUES
@@ -1687,5 +1719,132 @@ BEGIN
         ON p.BrandId=b.BrandId
 
     ORDER BY p.CreatedAt DESC;
+END
+GO
+----------------------------------------------------------------------------------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_AddToCart
+(
+    @UserId INT,
+    @ProductId INT,
+    @Quantity INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @CartId INT;
+
+    SELECT @CartId = CartId
+    FROM Cart
+    WHERE UserId = @UserId;
+
+    IF @CartId IS NULL
+    BEGIN
+        INSERT INTO Cart(UserId)
+        VALUES(@UserId);
+
+        SET @CartId = SCOPE_IDENTITY();
+    END
+
+    IF EXISTS
+    (
+        SELECT 1
+        FROM CartItems
+        WHERE CartId = @CartId
+        AND ProductId = @ProductId
+    )
+    BEGIN
+        UPDATE CartItems
+        SET Quantity = Quantity + @Quantity
+        WHERE CartId = @CartId
+        AND ProductId = @ProductId;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO CartItems
+        (
+            CartId,
+            ProductId,
+            Quantity
+        )
+        VALUES
+        (
+            @CartId,
+            @ProductId,
+            @Quantity
+        );
+    END
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_GetCart
+(
+    @UserId INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        ci.CartItemId,
+        p.ProductId,
+        p.ProductName,
+        p.Price,
+        p.Discount,
+        ci.Quantity,
+
+        (
+            SELECT TOP 1 ImageUrl
+            FROM Images
+            WHERE ProductId = p.ProductId
+            ORDER BY ImageId
+        ) AS ImageUrl
+
+    FROM Cart c
+    INNER JOIN CartItems ci
+        ON c.CartId = ci.CartId
+    INNER JOIN Products p
+        ON ci.ProductId = p.ProductId
+    WHERE c.UserId = @UserId;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE sp_UpdateCartQuantity
+(
+    @CartItemId INT,
+    @Quantity INT
+)
+AS
+BEGIN
+    UPDATE CartItems
+    SET Quantity = @Quantity
+    WHERE CartItemId = @CartItemId;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_RemoveCartItem
+(
+    @CartItemId INT
+)
+AS
+BEGIN
+    DELETE FROM CartItems
+    WHERE CartItemId = @CartItemId;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE sp_ClearCart
+(
+    @UserId INT
+)
+AS
+BEGIN
+    DELETE ci
+    FROM CartItems ci
+    INNER JOIN Cart c
+        ON ci.CartId = c.CartId
+    WHERE c.UserId = @UserId;
 END
 GO

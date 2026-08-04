@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Heart, ShoppingCart, Minus, Plus, Star } from "lucide-react";
 import { getProductById } from "../api/productApi";
 import { addToCart } from "../api/cartApi";
+import { addToWishlist } from "../api/wishlistApi";
 
 function ProductDetails() {
   const { id } = useParams();
@@ -217,12 +218,24 @@ function ProductDetails() {
               <ShoppingCart size={20} />
               Add To Cart
             </button>
-
             <button
               type="button"
-              className="flex items-center justify-center rounded-lg border px-5 hover:bg-gray-100"
+              onClick={async (e) => {
+                e.stopPropagation();
+
+                try {
+                  await addToWishlist(product.productId);
+                  console.log("Wishlist response:", res);
+
+                  alert("Added to Wishlist");
+                } catch (err) {
+                  console.log(err.response);
+                  console.log(err);
+                }
+              }}
+              className="absolute right-3 top-3 rounded-full bg-white p-2 shadow-md"
             >
-              <Heart size={22} />
+              <Heart size={18} />
             </button>
           </div>
         </div>

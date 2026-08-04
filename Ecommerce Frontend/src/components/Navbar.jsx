@@ -7,51 +7,82 @@ import {
   ChevronDown,
   LogOut,
 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 import logo from "../assets/logo.svg";
 import { authApi } from "../api/authApi";
-import { useNavigate } from "react-router-dom";
+import { getCart } from "../api/cartApi";
+import { getWishlist } from "../api/wishlistApi";
 
 function Navbar({ search, setSearch }) {
   const [userName, setUserName] = useState(null);
+  const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await authApi.getCurrentUser();
-        setUserName(user.userName);
-      } catch (error) {
-        setUserName(null);
-      }
-    };
-
     loadUser();
+    loadCartCount();
+    loadWishlistCount();
   }, []);
+
+  const loadUser = async () => {
+    try {
+      const user = await authApi.getCurrentUser();
+      setUserName(user.userName);
+    } catch (error) {
+      setUserName(null);
+    }
+  };
+
+  const loadCartCount = async () => {
+    try {
+      const cart = await getCart();
+
+      // Total quantity in cart
+      const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+      setCartCount(total);
+
+      // If you want only different products instead:
+      // setCartCount(cart.length);
+    } catch (error) {
+      console.error(error);
+      setCartCount(0);
+    }
+  };
+
+  const loadWishlistCount = async () => {
+    try {
+      const wishlist = await getWishlist();
+      setWishlistCount(wishlist.length);
+    } catch (error) {
+      console.error(error);
+      setWishlistCount(0);
+    }
+  };
 
   const handleLogout = async () => {
     try {
       await authApi.logout();
-
       setUserName(null);
-
-      // Send user to login page
       window.location.href = "/login";
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error(error);
     }
   };
 
   return (
-    <header className="border-b bg-[#f8f8f8] font.mont">
-      <div className="mx-auto flex max-w-350 items-center px-6 py-4 font.mont">
+    <header className="border-b bg-[#f8f8f8]">
+      <div className="mx-auto flex max-w-[1700px] items-center px-6 py-4">
         {/* Logo */}
         <div className="shrink-0">
           <img src={logo} alt="Logo" className="h-14 w-auto" />
         </div>
 
         {/* Center */}
-        <div className="mx-6 flex-1 rounded-lg border bg-white px-3 py-2 font.mont">
+        <div className="mx-6 flex-1 rounded-lg border bg-white px-3 py-2">
           {/* Search */}
           <div className="flex items-center rounded-md border px-3 py-2">
             <Search size={18} className="text-gray-500" />
@@ -66,7 +97,7 @@ function Navbar({ search, setSearch }) {
           </div>
 
           {/* Navigation */}
-          <nav className="mt-2 flex items-center gap-7 px-2 text-sm font.mont">
+          <nav className="mt-2 flex items-center gap-7 px-2 text-sm">
             <div className="flex cursor-pointer items-center gap-1">
               For Him
               <ChevronDown size={14} />
@@ -93,18 +124,36 @@ function Navbar({ search, setSearch }) {
           {/* User */}
           <div className="flex items-center gap-2 border-r pr-4">
             <User size={18} />
-
             <span className="font-medium">{userName || "Guest"}</span>
           </div>
 
           {/* Wishlist */}
           <div className="border-r pr-4">
-            <Heart size={20} />
+            <Link to="/wishlist" className="relative">
+              <Heart size={22} />
+
+              {wishlistCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
           </div>
 
           {/* Cart */}
           <div className="border-r pr-4">
-            <ShoppingCart size={20} onClick={() => navigate("/cart")} />
+            <div
+              className="relative cursor-pointer"
+              onClick={() => navigate("/cart")}
+            >
+              <ShoppingCart size={22} />
+
+              {cartCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-black text-xs font-bold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Logout */}
@@ -112,7 +161,7 @@ function Navbar({ search, setSearch }) {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-red-600 transition hover:bg-red-50"
+              className="flex items-center gap-1 rounded-md px-2 py-1 text-red-600 transition hover:bg-red-50"
             >
               <LogOut size={18} />
               Logout
