@@ -69,18 +69,7 @@ namespace Ecommerce.Infrastructure.Repositories
                             OrderId = orderId,
                             item.ProductId,
                             item.Quantity,
-                            item.UnitPrice,
-                            item.Discount
-                        },
-                        transaction,
-                        commandType: CommandType.StoredProcedure);
-
-                    await connection.ExecuteAsync(
-                        "sp_UpdateStockAfterOrder",
-                        new
-                        {
-                            item.ProductId,
-                            item.Quantity
+                            item.UnitPrice
                         },
                         transaction,
                         commandType: CommandType.StoredProcedure);

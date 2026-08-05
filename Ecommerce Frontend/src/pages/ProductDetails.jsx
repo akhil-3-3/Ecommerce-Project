@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Heart, ShoppingCart, Minus, Plus, Star } from "lucide-react";
+import {
+  Heart,
+  ShoppingCart,
+  Minus,
+  Plus,
+  Star,
+  ShoppingBag,
+} from "lucide-react";
 import { getProductById } from "../api/productApi";
 import { addToCart } from "../api/cartApi";
 import { addToWishlist } from "../api/wishlistApi";
+import { useNavigate } from "react-router-dom";
 
 function ProductDetails() {
   const { id } = useParams();
@@ -13,6 +21,8 @@ function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(0);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadProduct();
@@ -199,6 +209,21 @@ function ProductDetails() {
 
           {/* Buttons */}
           <div className="mt-8 flex gap-4">
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/checkout", {
+                  state: {
+                    productId: product.productId,
+                    quantity,
+                  },
+                })
+              }
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-4 text-white hover:bg-green-700"
+            >
+              <ShoppingBag size={20} />
+              Buy Now
+            </button>
             <button
               type="button"
               onClick={async () => {

@@ -2,6 +2,7 @@
 using Ecommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Ecommerce.API.Controllers
 {
@@ -37,10 +38,11 @@ namespace Ecommerce.API.Controllers
 
             return Ok(order);
         }
-
         [HttpPost]
         public async Task<IActionResult> CreateOrder(AddOrderDto dto)
         {
+            dto.UserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
             var orderId = await _orderService.CreateOrderAsync(dto);
 
             return Ok(new

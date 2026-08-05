@@ -5,7 +5,10 @@ DROP DATABASE Ecommerce_DB ;
 USE Ecommerce_DB;
 GO
 
-select * from users;
+select * from orders;
+ALTER TABLE Orders
+ADD ShippingAddress NVARCHAR(500) NOT NULL DEFAULT '';
+
 UPDATE Categories
 SET CategoryName = 'Indian Perfumes'
 WHERE CategoryId = 1;
@@ -167,6 +170,8 @@ CREATE TABLE Orders
     TotalAmount DECIMAL(10,2),
 
     Status VARCHAR(30),
+
+    ShippingAddress NVARCHAR(500) NOT NULL DEFAULT,
 
     CONSTRAINT FK_Order_User
         FOREIGN KEY(UserId)
@@ -1846,5 +1851,111 @@ BEGIN
     INNER JOIN Cart c
         ON ci.CartId = c.CartId
     WHERE c.UserId = @UserId;
+END
+GO
+---------------------------------------------------------------------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_AddToWishlist
+(
+    @UserId INT,
+    @ProductId INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @WishlistId INT;
+
+    SELECT @WishlistId = WishlistId
+    FROM Wishlist
+    WHERE UserId = @UserId;
+
+    IF @WishlistId IS NULL
+    BEGIN
+        INSERT INTO Wishlist(UserId)
+        VALUES(@UserId);
+
+        SET @WishlistId = SCOPE_IDENTITY();
+    END
+
+    IF NOT EXISTS
+    (
+        SELECT 1
+        FROM WishlistItems
+        WHERE WishlistId = @WishlistId
+        AND ProductId = @ProductId
+    )
+    BEGIN
+        INSERT INTO WishlistItems
+        (
+            WishlistId,
+            ProductId
+        )
+        VALUES
+        (
+            @WishlistId,
+            @ProductId
+        );
+    END
+END
+GO
+CREATE OR ALTER PROCEDURE sp_GetWishlist
+(
+    @UserId INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        wi.WishlistItemId,
+        p.ProductId,
+        p.ProductName,
+        p.Price,
+        p.Discount,
+
+        i.ImageId,
+        i.ImageUrl
+
+    FROM Wishlist w
+    INNER JOIN WishlistItems wi
+        ON w.WishlistId = wi.WishlistId
+
+    INNER JOIN Products p
+        ON wi.ProductId = p.ProductId
+
+    LEFT JOIN Images i
+        ON p.ProductId = i.ProductId
+
+    WHERE w.UserId = @UserId;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE sp_RemoveWishlistItem
+(
+    @WishlistItemId INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM WishlistItems
+    WHERE WishlistItemId = @WishlistItemId;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_ClearWishlist
+(
+    @UserId INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE wi
+    FROM WishlistItems wi
+    INNER JOIN Wishlist w
+        ON wi.WishlistId = w.WishlistId
+    WHERE w.UserId = @UserId;
 END
 GO
