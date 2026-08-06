@@ -12,6 +12,7 @@ import { getProductById } from "../api/productApi";
 import { addToCart } from "../api/cartApi";
 import { addToWishlist } from "../api/wishlistApi";
 import { useNavigate } from "react-router-dom";
+import { getReviewsByProduct } from "../api/reviewApi";
 
 function ProductDetails() {
   const { id } = useParams();
@@ -23,7 +24,19 @@ function ProductDetails() {
   const [selectedImage, setSelectedImage] = useState(0);
 
   const navigate = useNavigate();
+  const [reviews, setReviews] = useState([]);
+  useEffect(() => {
+    loadReviews();
+  }, [id]);
 
+  const loadReviews = async () => {
+    try {
+      const data = await getReviewsByProduct(id);
+      setReviews(data);
+    } catch (error) {
+      console.error("Failed to load reviews:", error);
+    }
+  };
   useEffect(() => {
     loadProduct();
   }, [id]);
@@ -208,7 +221,7 @@ function ProductDetails() {
           </div>
 
           {/* Buttons */}
-          <div className="mt-8 flex gap-4">
+          <div className="mt-8 flex items-center gap-3">
             <button
               type="button"
               onClick={() =>
@@ -219,49 +232,71 @@ function ProductDetails() {
                   },
                 })
               }
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-4 text-white hover:bg-green-700"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-3 text-white font-medium hover:bg-green-700"
             >
-              <ShoppingBag size={20} />
+              <ShoppingBag size={18} />
               Buy Now
             </button>
+
             <button
               type="button"
               onClick={async () => {
-                console.log("Button clicked");
                 try {
                   await addToCart(product.productId, quantity);
-                  console.log("API finished");
-
                   alert("Added to cart");
                 } catch (err) {
                   console.log(err);
                   alert("Unable to add to cart");
                 }
               }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-black px-6 py-4 text-white hover:bg-gray-800"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-black px-5 py-3 text-white font-medium hover:bg-gray-800"
             >
-              <ShoppingCart size={20} />
+              <ShoppingCart size={18} />
               Add To Cart
             </button>
+
             <button
               type="button"
-              onClick={async (e) => {
-                e.stopPropagation();
-
+              onClick={async () => {
                 try {
                   await addToWishlist(product.productId);
-                  console.log("Wishlist response:", res);
-
                   alert("Added to Wishlist");
                 } catch (err) {
-                  console.log(err.response);
                   console.log(err);
                 }
               }}
-              className="absolute right-3 top-3 rounded-full bg-white p-2 shadow-md"
+              className="rounded-full border p-3 hover:bg-gray-100"
             >
               <Heart size={18} />
             </button>
+          </div>
+
+          {/* Customer Reviews */}
+          <div className="mt-10">
+            <h2 className="mb-5 text-2xl font-semibold">Customer Reviews</h2>
+
+            {reviews.length === 0 ? (
+              <p className="text-gray-500">No reviews yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <div
+                    key={review.reviewId}
+                    className="rounded-lg border border-gray-200 p-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">{review.userName}</h3>
+
+                      <span className="text-yellow-500">
+                        {"⭐".repeat(review.rating)}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 text-gray-600">{review.reviewText}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

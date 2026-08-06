@@ -78,5 +78,17 @@ namespace Ecommerce.Infrastructure.Repositories
                 },
                 commandType: CommandType.StoredProcedure);
         }
+        public async Task<IEnumerable<ReviewResponseDto>> GetReviewsByProductIdAsync(int productId)
+        {
+            using var connection = GetConnection();
+
+            return await connection.QueryAsync<ReviewResponseDto>(
+                "sp_GetReviewsByProductId",
+                new
+                {
+                    ProductId = productId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
     }
 }

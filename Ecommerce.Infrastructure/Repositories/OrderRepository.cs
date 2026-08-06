@@ -98,5 +98,29 @@ namespace Ecommerce.Infrastructure.Repositories
                 },
                 commandType: CommandType.StoredProcedure);
         }
+        public async Task<IEnumerable<OrderResponseDto>> GetMyOrdersAsync(int userId)
+        {
+            using var connection = GetConnection();
+
+            return await connection.QueryAsync<OrderResponseDto>(
+                "sp_GetMyOrders",
+                new
+                {
+                    UserId = userId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+        public async Task<int> CancelOrderAsync(int orderId)
+        {
+            using var connection = GetConnection();
+
+            return await connection.ExecuteScalarAsync<int>(
+                "sp_CancelOrder",
+                new
+                {
+                    OrderId = orderId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
     }
 }

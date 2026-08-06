@@ -13,5 +13,6 @@ namespace Ecommerce.Application.Interfaces
         Task<int> UpdateReviewAsync(UpdateReviewDto dto);
 
         Task<int> DeleteReviewAsync(int id);
+        Task<IEnumerable<ReviewResponseDto>> GetReviewsByProductIdAsync(int productId);
     }
 }

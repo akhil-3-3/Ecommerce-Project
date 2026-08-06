@@ -1,10 +1,18 @@
 import { Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function WishlistItem({ item, onRemove }) {
-  const price = item.price - (item.price * item.discount) / 100;
+  const navigate = useNavigate();
 
+  const price = item.price - (item.price * item.discount) / 100;
+  const handleProductClick = () => {
+    navigate(`/product/${item.productId}`);
+  };
   return (
-    <div className="flex items-center gap-6 rounded-xl border p-5 shadow-sm">
+    <div
+      className="flex items-center gap-6 rounded-xl border p-5 shadow-sm cursor-pointer hover:shadow-md transition"
+      onClick={handleProductClick}
+    >
       <img
         src={item.images?.[0]?.imageUrl}
         alt={item.productName}
@@ -28,7 +36,10 @@ function WishlistItem({ item, onRemove }) {
       </div>
 
       <button
-        onClick={() => onRemove(item.wishlistItemId)}
+        onClick={(e) => {
+          e.stopPropagation(); // prevents opening product page
+          onRemove(item.wishlistItemId);
+        }}
         className="rounded-lg p-3 text-red-500 transition hover:bg-red-50"
       >
         <Trash2 />

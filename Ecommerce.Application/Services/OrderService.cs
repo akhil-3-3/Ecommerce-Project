@@ -31,5 +31,13 @@ namespace Ecommerce.Application.Services
         {
             return await _orderRepository.DeleteOrderAsync(id);
         }
+        public async Task<IEnumerable<OrderResponseDto>> GetMyOrdersAsync(int userId)
+        {
+            return await _orderRepository.GetMyOrdersAsync(userId);
+        }
+        public async Task<int> CancelOrderAsync(int orderId)
+        {
+            return await _orderRepository.CancelOrderAsync(orderId);
+        }
     }
 }

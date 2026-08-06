@@ -3,13 +3,19 @@ import Sidebar from "../components/Sidebar";
 import ProductGrid from "../components/ProductGrid";
 import Footer from "../components/Footer";
 import { getProducts, searchProducts } from "../api/productApi";
+import { getStocks } from "../api/stockApi";
+import { useLocation } from "react-router-dom";
 
 function Products({ search }) {
   const [products, setProducts] = useState([]);
+  const [includeOutOfStock, setIncludeOutOfStock] = useState(false);
   useEffect(() => {
     if (products.length > 0) {
     }
   }, [products]);
+  const location = useLocation();
+
+  const selectedGender = location.state?.gender || null;
 
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [selectedRating, setSelectedRating] = useState(null);
@@ -20,7 +26,6 @@ function Products({ search }) {
   // ==========================
   // LOAD / SEARCH PRODUCTS
   // ==========================
-
   useEffect(() => {
     if (search?.trim()) {
       handleSearch();
@@ -31,20 +36,42 @@ function Products({ search }) {
 
   const loadProducts = async () => {
     try {
-      const data = await getProducts();
-      setProducts(data);
+      const productsData = await getProducts();
+      const stocksData = await getStocks();
+
+      const productsWithStock = productsData.map((product) => {
+        const stock = stocksData.find((s) => s.productId === product.productId);
+
+        return {
+          ...product,
+          stockQuantity: stock ? stock.quantity : 0,
+        };
+      });
+
+      setProducts(productsWithStock);
     } catch (err) {
-      console.error("Failed to load products:", err);
+      console.error(err);
       setProducts([]);
     }
   };
-
   const handleSearch = async () => {
     try {
-      const data = await searchProducts(search.trim());
-      setProducts(data);
+      const productsData = await searchProducts(search.trim());
+
+      const stocksData = await getStocks();
+
+      const productsWithStock = productsData.map((product) => {
+        const stock = stocksData.find((s) => s.productId === product.productId);
+
+        return {
+          ...product,
+          stockQuantity: stock ? stock.quantity : 0,
+        };
+      });
+
+      setProducts(productsWithStock);
     } catch (err) {
-      console.error("Search failed:", err);
+      console.error(err);
       setProducts([]);
     }
   };
@@ -79,21 +106,34 @@ function Products({ search }) {
 
   const filteredProducts = useMemo(() => {
     const result = products.filter((product) => {
+      // Category Filter
       const categoryMatch =
         selectedFilters.length === 0 ||
         selectedFilters.includes(product.categoryName);
 
+      // Rating Filter
       const rating = Number(product.rating ?? 0);
 
       const ratingMatch =
         selectedRating === null ||
         (rating >= selectedRating && rating < selectedRating + 1);
 
+      // Brand Filter
       const brandMatch =
         selectedBrands.length === 0 ||
         selectedBrands.includes(product.brandName);
 
-      return categoryMatch && ratingMatch && brandMatch;
+      // Stock Filter
+      const stockMatch = includeOutOfStock || product.stockQuantity > 0;
+
+      // Gender Filter
+      const genderMatch =
+        !selectedGender ||
+        product.gender?.toLowerCase() === selectedGender.toLowerCase();
+
+      return (
+        categoryMatch && ratingMatch && brandMatch && stockMatch && genderMatch
+      );
     });
 
     switch (sortOption) {
@@ -119,13 +159,19 @@ function Products({ search }) {
 
       case "Default Sorting":
       default:
-        // Do nothing.
-        // Keeps the original API order.
         break;
     }
 
     return result;
-  }, [products, selectedFilters, selectedRating, selectedBrands, sortOption]);
+  }, [
+    products,
+    selectedFilters,
+    selectedRating,
+    selectedBrands,
+    includeOutOfStock,
+    selectedGender,
+    sortOption,
+  ]);
   return (
     <div className="font-actor mx-auto px-6 py-2">
       {/* ==========================
@@ -193,6 +239,8 @@ function Products({ search }) {
           onFilterChange={handleFilterChange}
           onRatingChange={handleRatingChange}
           onBrandChange={handleBrandChange}
+          includeOutOfStock={includeOutOfStock}
+          setIncludeOutOfStock={setIncludeOutOfStock}
         />
 
         <div className="flex-1">

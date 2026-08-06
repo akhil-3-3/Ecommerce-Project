@@ -1,25 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getCategories } from "../api/categoryApi";
 
 function Filter({ onFilterChange }) {
+  const [categories, setCategories] = useState([]);
   const [selectedFilters, setSelectedFilters] = useState([]);
 
-  const filters = [
-    "Niche Perfumes",
-    "Indian Perfumes",
-    "Oudh And Bhakdoors",
-    "Oils",
-    "Body Mist",
-    "Hair Mist",
-    "Home Frgrance",
-    "Gift Set",
-    "Best Sellers",
-    "Newest Arrival",
-  ];
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
-  const handleChange = (filter) => {
-    const updatedFilters = selectedFilters.includes(filter)
-      ? selectedFilters.filter((item) => item !== filter)
-      : [...selectedFilters, filter];
+  const loadCategories = async () => {
+    try {
+      const data = await getCategories();
+      setCategories(data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleChange = (categoryName) => {
+    const updatedFilters = selectedFilters.includes(categoryName)
+      ? selectedFilters.filter((item) => item !== categoryName)
+      : [...selectedFilters, categoryName];
 
     setSelectedFilters(updatedFilters);
 
@@ -29,18 +31,21 @@ function Filter({ onFilterChange }) {
   };
 
   return (
-    <div className="w-70 rounded-lg border bg-white p-6 space-y-3 text-sm h-fit mt-4 shadow-2xl border-gray-50">
+    <div className="w-70 mt-4 h-fit space-y-3 rounded-lg border border-gray-50 bg-white p-6 text-sm shadow-2xl">
       <h2 className="mb-6 text-2xl font-semibold">FRAGRANCE</h2>
 
-      {filters.map((filter) => (
-        <label key={filter} className="flex items-center gap-2 cursor-pointer">
+      {categories.map((category) => (
+        <label
+          key={category.categoryId}
+          className="flex cursor-pointer items-center gap-2"
+        >
           <input
             type="checkbox"
-            checked={selectedFilters.includes(filter)}
-            onChange={() => handleChange(filter)}
+            checked={selectedFilters.includes(category.categoryName)}
+            onChange={() => handleChange(category.categoryName)}
           />
 
-          <span>{filter}</span>
+          <span>{category.categoryName}</span>
         </label>
       ))}
     </div>

@@ -4,11 +4,11 @@ DROP DATABASE Ecommerce_DB ;
 
 USE Ecommerce_DB;
 GO
-
+select * from users
 select * from orders;
-ALTER TABLE Orders
-ADD ShippingAddress NVARCHAR(500) NOT NULL DEFAULT '';
-
+SELECT name
+FROM sys.types
+WHERE is_table_type = 1;
 UPDATE Categories
 SET CategoryName = 'Indian Perfumes'
 WHERE CategoryId = 1;
@@ -248,6 +248,15 @@ CREATE TABLE WishlistItems
 
     FOREIGN KEY (WishlistId) REFERENCES Wishlist(WishlistId),
     FOREIGN KEY (ProductId) REFERENCES Products(ProductId)
+);
+
+
+CREATE TYPE OrderItemType AS TABLE
+(
+    ProductId INT,
+    Quantity INT,
+    UnitPrice DECIMAL(10,2),
+    Discount DECIMAL(5,2)
 );
 ----------------------------------------------------------------------------------------------------------------------------------
 INSERT INTO Categories (CategoryName)
@@ -862,8 +871,8 @@ BEGIN
     SELECT SCOPE_IDENTITY();
 END
 GO
-/*=========================================================*/
-
+/*=========================================================*/ 
+EXEC sp_SearchProducts 'v'
 CREATE OR ALTER PROCEDURE sp_GetAllProducts
 AS
 BEGIN
@@ -881,8 +890,8 @@ BEGIN
         (
             SELECT AVG(CAST(Rating AS FLOAT))
             FROM Reviews r
-            WHERE r.ProductId=p.ProductId
-        ),0) AS Rating,
+            WHERE r.ProductId = p.ProductId
+        ), 0) AS Rating,
 
         p.Gender,
         p.Price,
@@ -890,17 +899,21 @@ BEGIN
         p.CreatedAt,
         p.Updated,
 
-        (
-            SELECT TOP 1 ImageUrl
-            FROM Images i
-            WHERE i.ProductId=p.ProductId
-        ) AS ImageUrl
+        i.ImageId,
+        i.ImageUrl,
+        i.ImagePublicId
 
     FROM Products p
+
     INNER JOIN Categories c
-        ON p.CategoryId=c.CategoryId
+        ON p.CategoryId = c.CategoryId
+
     INNER JOIN Brands b
-        ON p.BrandId=b.BrandId
+        ON p.BrandId = b.BrandId
+
+    LEFT JOIN Images i
+        ON p.ProductId = i.ProductId
+
     ORDER BY p.ProductName;
 END
 GO
@@ -1009,7 +1022,6 @@ END
 GO
 
 /*=========================================================*/
-
 CREATE OR ALTER PROCEDURE sp_SearchProducts
 (
     @Keyword VARCHAR(100)
@@ -1030,7 +1042,7 @@ BEGIN
         (
             SELECT AVG(CAST(Rating AS FLOAT))
             FROM Reviews r
-            WHERE r.ProductId=p.ProductId
+            WHERE r.ProductId = p.ProductId
         ),0) AS Rating,
 
         p.Gender,
@@ -1039,28 +1051,28 @@ BEGIN
         p.CreatedAt,
         p.Updated,
 
-        (
-            SELECT TOP 1 ImageUrl
-            FROM Images i
-            WHERE i.ProductId=p.ProductId
-        ) AS ImageUrl
+        i.ImageId,
+        i.ProductId,
+        i.ImageUrl,
+        i.ImagePublicId
 
     FROM Products p
 
     INNER JOIN Categories c
-        ON p.CategoryId=c.CategoryId
+        ON p.CategoryId = c.CategoryId
 
     INNER JOIN Brands b
-        ON p.BrandId=b.BrandId
+        ON p.BrandId = b.BrandId
+
+    LEFT JOIN Images i
+        ON p.ProductId = i.ProductId
 
     WHERE
-
         p.ProductName LIKE '%' + @Keyword + '%'
-        OR
-        c.CategoryName LIKE '%' + @Keyword + '%'
-        OR
-        b.BrandName LIKE '%' + @Keyword + '%';
+        OR c.CategoryName LIKE '%' + @Keyword + '%'
+        OR b.BrandName LIKE '%' + @Keyword + '%'
 
+    ORDER BY p.ProductName;
 END
 GO
 /*=========================================================
@@ -1238,11 +1250,11 @@ GO
 /*=========================================================
                     ORDERS
 =========================================================*/
-
-CREATE OR ALTER PROCEDURE sp_AddOrder
+ALTER PROCEDURE sp_AddOrder
 (
     @UserId INT,
-    @TotalAmount DECIMAL(10,2)
+    @TotalAmount DECIMAL(10,2),
+    @ShippingAddress NVARCHAR(500)
 )
 AS
 BEGIN
@@ -1251,18 +1263,22 @@ BEGIN
     INSERT INTO Orders
     (
         UserId,
-        TotalAmount
+        TotalAmount,
+        ShippingAddress,
+        OrderDate,
+        Status
     )
     VALUES
     (
         @UserId,
-        @TotalAmount
+        @TotalAmount,
+        @ShippingAddress,
+        GETDATE(),
+        'Pending'
     );
 
-    SELECT SCOPE_IDENTITY();
-END
-GO
-
+    SELECT CAST(SCOPE_IDENTITY() AS INT);
+END;
 /*=========================================================*/
 
 CREATE OR ALTER PROCEDURE sp_AddOrderDetail
@@ -1409,6 +1425,43 @@ BEGIN
 
     DELETE FROM Orders
     WHERE OrderId=@OrderId;
+
+    SELECT @@ROWCOUNT;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_GetMyOrders
+(
+    @UserId INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        o.OrderId,
+        o.UserId,
+        o.OrderDate,
+        o.TotalAmount,
+        o.Status,
+        o.ShippingAddress
+    FROM Orders o
+    WHERE o.UserId = @UserId
+    ORDER BY o.OrderDate DESC;
+END
+GO
+CREATE OR ALTER PROCEDURE sp_CancelOrder
+(
+    @OrderId INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE Orders
+    SET Status = 'Cancelled'
+    WHERE OrderId = @OrderId
+      AND Status = 'Pending';
 
     SELECT @@ROWCOUNT;
 END
@@ -1959,3 +2012,4 @@ BEGIN
     WHERE w.UserId = @UserId;
 END
 GO
+---------------------------------------------------------------------------------------------------------------------------------------

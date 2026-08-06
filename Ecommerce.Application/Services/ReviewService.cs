@@ -36,5 +36,9 @@ namespace Ecommerce.Application.Services
         {
             return await _reviewRepository.DeleteReviewAsync(id);
         }
+        public async Task<IEnumerable<ReviewResponseDto>> GetReviewsByProductIdAsync(int productId)
+        {
+            return await _reviewRepository.GetReviewsByProductIdAsync(productId);
+        }
     }
 }

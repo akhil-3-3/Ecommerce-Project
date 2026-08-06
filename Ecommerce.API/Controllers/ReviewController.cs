@@ -68,5 +68,12 @@ namespace Ecommerce.API.Controllers
 
             return Ok("Review deleted successfully.");
         }
+        [HttpGet("product/{productId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetReviewsByProduct(int productId)
+        {
+            var reviews = await _reviewService.GetReviewsByProductIdAsync(productId);
+            return Ok(reviews);
+        }
     }
 }

@@ -11,5 +11,7 @@ namespace Ecommerce.Application.Interfaces
         Task<int> CreateOrderAsync(AddOrderDto dto);
 
         Task<int> DeleteOrderAsync(int id);
+        Task<IEnumerable<OrderResponseDto>> GetMyOrdersAsync(int userId);
+        Task<int> CancelOrderAsync(int orderId);
     }
 }

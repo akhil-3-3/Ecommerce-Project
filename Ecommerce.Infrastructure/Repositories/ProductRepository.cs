@@ -135,13 +135,36 @@ namespace Ecommerce.Infrastructure.Repositories
         {
             using var connection = GetConnection();
 
-            return await connection.QueryAsync<ProductResponseDtos>(
+            var productDictionary = new Dictionary<int, ProductResponseDtos>();
+
+            await connection.QueryAsync<ProductResponseDtos, ImageResponseDto, ProductResponseDtos>(
                 "sp_SearchProducts",
+                (product, image) =>
+                {
+                    if (!productDictionary.TryGetValue(product.ProductId, out var existingProduct))
+                    {
+                        existingProduct = product;
+                        existingProduct.Images = new List<ImageResponseDto>();
+
+                        productDictionary.Add(product.ProductId, existingProduct);
+                    }
+
+                    if (image != null && image.ImageId != 0)
+                    {
+                        existingProduct.Images.Add(image);
+                    }
+
+                    return existingProduct;
+                },
                 new
                 {
                     Keyword = keyword
                 },
-                commandType: CommandType.StoredProcedure);
+                splitOn: "ImageId",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return productDictionary.Values;
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Ecommerce.API.Controllers
             _productRepository = productRepository;
         }
 
+
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
@@ -23,19 +24,15 @@ namespace Ecommerce.API.Controllers
             return Ok(products);
         }
 
+
         [HttpGet("search")]
-        public async Task<IActionResult> SearchProducts([FromQuery] string keyword)
+        public async Task<IActionResult> SearchProducts(string keyword)
         {
-            if (string.IsNullOrWhiteSpace(keyword))
-            {
-                var products = await _productRepository.GetAllProductsAsync();
-                return Ok(products);
-            }
+            var products = await _productRepository.SearchProductsAsync(keyword);
 
-            var result = await _productRepository.SearchProductsAsync(keyword);
-
-            return Ok(result);
+            return Ok(products);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(int id)
@@ -47,6 +44,7 @@ namespace Ecommerce.API.Controllers
 
             return Ok(product);
         }
+
 
         [Authorize]
         [HttpPost]
@@ -61,6 +59,7 @@ namespace Ecommerce.API.Controllers
             });
         }
 
+
         [Authorize]
         [HttpPut]
         public async Task<IActionResult> UpdateProduct(UpdateProductDtos dto)
@@ -72,6 +71,7 @@ namespace Ecommerce.API.Controllers
 
             return Ok("Product updated successfully.");
         }
+
 
         [Authorize]
         [HttpDelete("{id}")]

@@ -7,12 +7,12 @@ import {
   ChevronDown,
   LogOut,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
 
 import logo from "../assets/logo.svg";
 import { authApi } from "../api/authApi";
 import { getCart } from "../api/cartApi";
 import { getWishlist } from "../api/wishlistApi";
+import { Link, useNavigate } from "react-router-dom";
 
 function Navbar({ search, setSearch }) {
   const [userName, setUserName] = useState(null);
@@ -92,26 +92,54 @@ function Navbar({ search, setSearch }) {
               placeholder="Search for Perfumes"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  navigate("/products");
+                }
+              }}
               className="ml-2 w-full text-sm outline-none"
             />
           </div>
 
           {/* Navigation */}
           <nav className="mt-2 flex items-center gap-7 px-2 text-sm">
-            <div className="flex cursor-pointer items-center gap-1">
+            <div
+              onClick={() =>
+                navigate("/products", {
+                  state: { gender: "Male" },
+                })
+              }
+              className="flex cursor-pointer items-center gap-1 hover:text-gray-700"
+            >
               For Him
               <ChevronDown size={14} />
             </div>
 
-            <div className="flex cursor-pointer items-center gap-1">
+            <div
+              onClick={() =>
+                navigate("/products", {
+                  state: { gender: "Female" },
+                })
+              }
+              className="flex cursor-pointer items-center gap-1 hover:text-gray-700"
+            >
               For Her
               <ChevronDown size={14} />
             </div>
 
-            <div className="flex cursor-pointer items-center gap-1">
+            <Link
+              to="/products"
+              className="flex cursor-pointer items-center gap-1 hover:text-gray-700"
+            >
               Products
-              <ChevronDown size={14} />
-            </div>
+            </Link>
+
+            <Link
+              to="/orders"
+              className="flex cursor-pointer items-center gap-1 hover:text-gray-700"
+            >
+              My Orders
+            </Link>
 
             <a href="#">Story</a>
             <a href="#">About</a>

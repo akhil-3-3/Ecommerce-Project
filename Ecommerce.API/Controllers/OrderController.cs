@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
+
 namespace Ecommerce.API.Controllers
 {
     [ApiController]
@@ -61,6 +62,26 @@ namespace Ecommerce.API.Controllers
                 return NotFound();
 
             return Ok("Order deleted successfully.");
+        }
+        [HttpGet("my-orders")]
+        public async Task<IActionResult> GetMyOrders()
+        {
+            int userId = int.Parse(
+                User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var orders = await _orderService.GetMyOrdersAsync(userId);
+
+            return Ok(orders);
+        }
+        [HttpPut("cancel/{id}")]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            var rows = await _orderService.CancelOrderAsync(id);
+
+            if (rows == 0)
+                return BadRequest("Order cannot be cancelled.");
+
+            return Ok("Order cancelled successfully.");
         }
     }
 }
