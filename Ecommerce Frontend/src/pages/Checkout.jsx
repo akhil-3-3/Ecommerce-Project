@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getProductById } from "../api/productApi";
 import { createOrder } from "../api/orderApi";
-
+import { getCart } from "../api/cartApi";
 function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -10,18 +10,18 @@ function Checkout() {
   const { productId, quantity } = location.state || {};
 
   const [product, setProduct] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [address, setAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("COD");
 
   useEffect(() => {
-    if (!productId) {
-      navigate("/");
-      return;
+    if (productId) {
+      loadProduct();
+    } else {
+      loadCart();
     }
-
-    loadProduct();
   }, []);
 
   const loadProduct = async () => {
@@ -35,27 +35,52 @@ function Checkout() {
       setLoading(false);
     }
   };
+  const loadCart = async () => {
+    try {
+      const data = await getCart();
 
+      if (data.length === 0) {
+        navigate("/cart");
+        return;
+      }
+
+      setCartItems(data);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
   if (loading) {
     return (
-      <div className="flex min-h-[500px] items-center justify-center">
+      <div className="flex min-h-125 items-center justify-center">
         Loading...
       </div>
     );
   }
 
-  if (!product) {
+  if (productId && !product) {
     return (
-      <div className="flex min-h-[500px] items-center justify-center">
+      <div className="flex min-h-125 items-center justify-center">
         Product not found.
       </div>
     );
   }
 
-  const discountedPrice =
-    product.price - (product.price * product.discount) / 100;
+  let discountedPrice = 0;
+  let total = 0;
 
-  const total = discountedPrice * quantity;
+  if (productId) {
+    discountedPrice = product.price - (product.price * product.discount) / 100;
+
+    total = discountedPrice * quantity;
+  } else {
+    total = cartItems.reduce((sum, item) => {
+      const price = item.price - (item.price * item.discount) / 100;
+
+      return sum + price * item.quantity;
+    }, 0);
+  }
 
   const placeOrder = async () => {
     if (!address.trim()) {
@@ -66,14 +91,21 @@ function Checkout() {
     try {
       const order = {
         shippingAddress: address,
-        items: [
-          {
-            productId: product.productId,
-            quantity: quantity,
-            unitPrice: discountedPrice,
-            discount: product.discount,
-          },
-        ],
+        items: productId
+          ? [
+              {
+                productId: product.productId,
+                quantity,
+                unitPrice: discountedPrice,
+                discount: product.discount,
+              },
+            ]
+          : cartItems.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              unitPrice: item.price - (item.price * item.discount) / 100,
+              discount: item.discount,
+            })),
       };
       const response = await createOrder(order);
 
@@ -95,34 +127,67 @@ function Checkout() {
         <div className="rounded-xl border p-6">
           <h2 className="mb-6 text-2xl font-semibold">Order Summary</h2>
 
-          <div className="flex gap-6">
-            <img
-              src={product.images?.[0]?.imageUrl}
-              alt={product.productName}
-              className="h-36 w-36 rounded-lg object-contain"
-            />
+          {productId ? (
+            <div className="flex gap-6">
+              <img
+                src={product.images?.[0]?.imageUrl}
+                alt={product.productName}
+                className="h-36 w-36 rounded-lg object-contain"
+              />
 
-            <div className="flex-1">
-              <h3 className="text-xl font-semibold">{product.productName}</h3>
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold">{product.productName}</h3>
 
-              <p className="mt-1 text-gray-500">{product.brandName}</p>
+                <p className="mt-1 text-gray-500">{product.brandName}</p>
 
-              <p className="mt-3">
-                Quantity : <strong>{quantity}</strong>
-              </p>
+                <p className="mt-3">
+                  Quantity : <strong>{quantity}</strong>
+                </p>
 
-              <p className="mt-2">
-                Price :
-                <span className="ml-2 font-semibold text-green-700">
-                  ₹{discountedPrice.toFixed(2)}
-                </span>
-              </p>
+                <p className="mt-2">
+                  Price :
+                  <span className="ml-2 font-semibold text-green-700">
+                    ₹{discountedPrice.toFixed(2)}
+                  </span>
+                </p>
 
-              <p className="mt-4 text-2xl font-bold">
-                Total : ₹{total.toFixed(2)}
-              </p>
+                <p className="mt-4 text-2xl font-bold">
+                  Total : ₹{total.toFixed(2)}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {cartItems.map((item) => {
+                const price = item.price - (item.price * item.discount) / 100;
+
+                return (
+                  <div
+                    key={item.cartItemId}
+                    className="mb-4 flex items-center gap-4 border-b pb-4"
+                  >
+                    <img
+                      src={item.imageUrl}
+                      alt={item.productName}
+                      className="h-20 w-20 rounded object-contain"
+                    />
+
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{item.productName}</h3>
+
+                      <p>Qty : {item.quantity}</p>
+
+                      <p>₹{price.toFixed(2)}</p>
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div className="mt-4 text-right text-2xl font-bold">
+                Total : ₹{total.toFixed(2)}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Checkout */}

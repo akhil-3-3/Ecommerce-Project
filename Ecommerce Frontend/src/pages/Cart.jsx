@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import CartItem from "../components/CartItem";
+import { useNavigate } from "react-router-dom";
 import {
   getCart,
   updateCartQuantity,
@@ -10,7 +11,7 @@ import {
 function Cart() {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate();
   useEffect(() => {
     loadCart();
   }, []);
@@ -129,7 +130,10 @@ function Cart() {
             <span>₹{subtotal.toFixed(0)}</span>
           </div>
 
-          <button className="mb-3 w-full rounded-lg bg-black py-4 text-white hover:bg-gray-800">
+          <button
+            onClick={() => navigate("/checkout")}
+            className="mb-3 w-full rounded-lg bg-black py-4 text-white hover:bg-gray-800"
+          >
             Proceed To Checkout
           </button>
 
