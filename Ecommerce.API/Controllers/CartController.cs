@@ -2,6 +2,7 @@
 using Ecommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace Ecommerce.API.Controllers
@@ -28,7 +29,7 @@ namespace Ecommerce.API.Controllers
 
             return Ok(cart);
         }
-
+        [EnableRateLimiting("fixed")]
         [HttpPost]
         public async Task<IActionResult> AddToCart(AddCartItemDto dto)
         {

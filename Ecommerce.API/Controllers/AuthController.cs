@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Ecommerce.API.Controllers
 {
@@ -23,7 +24,7 @@ namespace Ecommerce.API.Controllers
         // ==========================
         // EMAIL REGISTER
         // ==========================
-
+        [EnableRateLimiting("fixed")]
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
@@ -59,7 +60,7 @@ namespace Ecommerce.API.Controllers
         // ==========================
         // NORMAL LOGIN
         // ==========================
-
+        [EnableRateLimiting("fixed")]
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
@@ -79,7 +80,7 @@ namespace Ecommerce.API.Controllers
         // ==========================
         // GOOGLE LOGIN
         // ==========================
-
+        [EnableRateLimiting("fixed")]
         [HttpGet("google-login")]
         public IActionResult GoogleLogin()
         {

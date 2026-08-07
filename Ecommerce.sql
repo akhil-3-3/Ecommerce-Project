@@ -1175,40 +1175,28 @@ GO
 /*=========================================================*/
 
 CREATE OR ALTER PROCEDURE sp_GetReviewsByProductId
-(
     @ProductId INT
-)
 AS
 BEGIN
-    SET NOCOUNT ON;
-
     SELECT
         r.ReviewId,
         r.ProductId,
         p.ProductName,
         r.UserId,
-        u.UserName,
+        u.Username AS UserName,
         r.Rating,
         r.ReviewText,
         r.ReviewDate,
         r.UpdatedAt
-
     FROM Reviews r
-
-    INNER JOIN Products p
-        ON r.ProductId = p.ProductId
-
-    INNER JOIN Users u
-        ON r.UserId = u.UserId
-
-    WHERE r.ProductId=@ProductId
-
+    INNER JOIN Users u ON r.UserId = u.UserId
+    INNER JOIN Products p ON r.ProductId = p.ProductId
+    WHERE r.ProductId = @ProductId
     ORDER BY r.ReviewDate DESC;
 END
-GO
 
 /*=========================================================*/
-
+go
 CREATE OR ALTER PROCEDURE sp_UpdateReview
 (
     @ReviewId INT,

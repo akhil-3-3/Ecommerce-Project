@@ -2,6 +2,7 @@
 using Ecommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Ecommerce.API.Controllers
 {
@@ -34,7 +35,7 @@ namespace Ecommerce.API.Controllers
 
             return Ok(review);
         }
-
+        [EnableRateLimiting("fixed")]
         [HttpPost]
         public async Task<IActionResult> AddReview(AddReviewDto dto)
         {

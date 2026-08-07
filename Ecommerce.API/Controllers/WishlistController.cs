@@ -2,6 +2,7 @@
 using Ecommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace Ecommerce.API.Controllers
@@ -27,7 +28,7 @@ namespace Ecommerce.API.Controllers
             var wishlist = await _wishlistService.GetWishlistAsync(UserId);
             return Ok(wishlist);
         }
-
+        [EnableRateLimiting("fixed")]
         [HttpPost]
         public async Task<IActionResult> AddToWishlist(AddWishlistDto dto)
         {

@@ -7,7 +7,7 @@ namespace Ecommerce.Application.Services
     {
         private readonly IImageRepository _imageRepository;
         private readonly CloudinaryService _cloudinaryService;
-
+        
         public ImageService(
             IImageRepository imageRepository,
             CloudinaryService cloudinaryService)
