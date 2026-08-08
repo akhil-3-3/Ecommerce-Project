@@ -84,5 +84,7 @@ namespace Ecommerce.API.Controllers
 
             return Ok("Product deleted successfully.");
         }
+
+       
     }
 }

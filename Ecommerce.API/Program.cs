@@ -8,6 +8,7 @@ using StackExchange.Redis;
 using System.Security.Principal;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using Ecommerce.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -164,6 +165,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // =============================
 
