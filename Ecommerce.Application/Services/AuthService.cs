@@ -30,6 +30,7 @@ namespace Ecommerce.Application.Services
                 .Next(100000, 999999)
                 .ToString();
 
+            // Hash the password ONCE
             var passwordHash =
                 BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
@@ -52,6 +53,10 @@ namespace Ecommerce.Application.Services
             return true;
         }
 
+        // ============================
+        // VERIFY EMAIL
+        // ============================
+
         public async Task<bool> VerifyEmailAsync(
             VerifyEmailDto dto)
         {
@@ -64,13 +69,18 @@ namespace Ecommerce.Application.Services
             if (pendingUser.VerificationCode != dto.VerificationCode)
                 return false;
 
-            await _authRepository.RegisterAsync(
+            // The password is ALREADY BCrypt hashed.
+            // Do NOT hash it again.
+            var userId = await _authRepository.RegisterAsync(
                 new RegisterDto
                 {
                     UserName = pendingUser.UserName,
                     Email = pendingUser.Email,
                     Password = pendingUser.PasswordHash
                 });
+
+            if (userId <= 0)
+                return false;
 
             await _redisService.RemovePendingUserAsync(dto.Email);
 
@@ -88,26 +98,27 @@ namespace Ecommerce.Application.Services
         }
 
         // ============================
-        // GOOGLE LOGIN
+        // GOOGLE / FACEBOOK LOGIN
         // ============================
 
         public async Task<AuthResponseDto> SocialLoginAsync(
-    string userName,
-    string email,
-    string provider)
-{
-    var user = await _authRepository.GetUserByEmailAsync(email);
+            string userName,
+            string email,
+            string provider)
+        {
+            var user =
+                await _authRepository.GetUserByEmailAsync(email);
 
-    if (user != null)
-        return user;
+            if (user != null)
+                return user;
 
-    await _authRepository.RegisterSocialUserAsync(
-        userName,
-        email,
-        provider);
+            await _authRepository.RegisterSocialUserAsync(
+                userName,
+                email,
+                provider);
 
-    return await _authRepository.GetUserByEmailAsync(email)
-           ?? throw new Exception("Social login failed.");
-}
+            return await _authRepository.GetUserByEmailAsync(email)
+                ?? throw new Exception("Social login failed.");
+        }
     }
 }

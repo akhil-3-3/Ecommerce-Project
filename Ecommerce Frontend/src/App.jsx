@@ -9,12 +9,18 @@ import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import Orders from "./pages/Orders";
 import ProductsPage from "./pages/ProductsPage";
+import LandingPage from "./pages/LandingPage";
+import Register from "./pages/Register";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function App() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/home" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/products" element={<ProductsPage />} />{" "}
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/cart" element={<Cart />} />

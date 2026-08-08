@@ -3,9 +3,12 @@ import { authApi } from "../api/authApi";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 
-function Login() {
+function Register() {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -14,14 +17,31 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setLoading(true);
     setError("");
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      await authApi.login(email, password);
-      navigate("/home");
+      await authApi.register(username, email, password);
+
+      // Registration is NOT complete yet.
+      // User must verify the email first.
+      navigate("/verify-email", {
+        state: {
+          email: email,
+        },
+      });
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid email or password.");
+      setError(
+        err.response?.data?.message ||
+          err.response?.data ||
+          "Unable to create account. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -42,15 +62,29 @@ function Login() {
         <div className="flex flex-col items-center">
           <img src={logo} alt="Logo" className="h-16" />
 
-          <h1 className="mt-5 text-3xl font-semibold">Welcome!</h1>
+          <h1 className="mt-5 text-3xl font-semibold">Create Account</h1>
 
           <p className="mt-2 text-center text-gray-500">
-            Login to continue shopping
+            Sign up to start shopping
           </p>
         </div>
 
-        {/* Login Form */}
+        {/* Register Form */}
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          {/* Username */}
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setError("");
+            }}
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-black"
+            required
+          />
+
+          {/* Email */}
           <input
             type="email"
             placeholder="Email Address"
@@ -60,8 +94,10 @@ function Login() {
               setError("");
             }}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-black"
+            required
           />
 
+          {/* Password */}
           <input
             type="password"
             placeholder="Password"
@@ -71,20 +107,36 @@ function Login() {
               setError("");
             }}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-black"
+            required
           />
 
+          {/* Confirm Password */}
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              setError("");
+            }}
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-black"
+            required
+          />
+
+          {/* Error */}
           {error && (
             <div className="rounded-lg bg-red-100 p-3 text-center text-sm text-red-600">
               {error}
             </div>
           )}
 
+          {/* Register */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-black py-3 text-white transition hover:bg-gray-800"
+            className="w-full rounded-xl bg-black py-3 text-white transition hover:bg-gray-800 disabled:opacity-50"
           >
-            {loading ? "Logging In..." : "Login"}
+            {loading ? "Sending Verification Code..." : "Create Account"}
           </button>
         </form>
 
@@ -97,7 +149,7 @@ function Login() {
           <div className="h-px flex-1 bg-gray-300"></div>
         </div>
 
-        {/* Social Login */}
+        {/* Google / Facebook */}
         <div className="space-y-3">
           <button
             type="button"
@@ -126,15 +178,15 @@ function Login() {
           </button>
         </div>
 
-        {/* Register */}
+        {/* Login */}
         <p className="mt-8 text-center text-sm text-gray-600">
-          Don't have an account?{" "}
+          Already have an account?{" "}
           <button
             type="button"
-            onClick={() => navigate("/register")}
+            onClick={() => navigate("/login")}
             className="font-semibold text-black hover:underline"
           >
-            Register
+            Login
           </button>
         </p>
       </div>
@@ -142,4 +194,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Register;
