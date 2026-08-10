@@ -129,7 +129,8 @@ function Products({ search }) {
       // Gender Filter
       const genderMatch =
         !selectedGender ||
-        product.gender?.toLowerCase() === selectedGender.toLowerCase();
+        product.gender?.toLowerCase() === selectedGender.toLowerCase() ||
+        product.gender?.toLowerCase() === "unisex";
 
       return (
         categoryMatch && ratingMatch && brandMatch && stockMatch && genderMatch

@@ -19,9 +19,13 @@ function Filter({ onFilterChange }) {
   };
 
   const handleChange = (categoryName) => {
-    const updatedFilters = selectedFilters.includes(categoryName)
-      ? selectedFilters.filter((item) => item !== categoryName)
-      : [...selectedFilters, categoryName];
+    let updatedFilters;
+
+    if (selectedFilters.includes(categoryName)) {
+      updatedFilters = selectedFilters.filter((item) => item !== categoryName);
+    } else {
+      updatedFilters = [...selectedFilters, categoryName];
+    }
 
     setSelectedFilters(updatedFilters);
 
@@ -31,13 +35,13 @@ function Filter({ onFilterChange }) {
   };
 
   return (
-    <div className="w-70 mt-4 h-fit space-y-3 rounded-lg border border-gray-50 bg-white p-6 text-sm shadow-2xl">
-      <h2 className="mb-6 text-2xl font-semibold">FRAGRANCE</h2>
+    <div>
+      <h3 className="mb-4 font-semibold">FRAGRANCE</h3>
 
       {categories.map((category) => (
         <label
           key={category.categoryId}
-          className="flex cursor-pointer items-center gap-2"
+          className="mb-3 flex cursor-pointer items-center gap-2"
         >
           <input
             type="checkbox"
