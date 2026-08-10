@@ -4,7 +4,6 @@ DROP DATABASE Ecommerce_DB ;
 
 USE Ecommerce_DB;
 GO
-select * from users
 select * from orders;
 SELECT name
 FROM sys.types
@@ -1268,7 +1267,7 @@ BEGIN
     SELECT CAST(SCOPE_IDENTITY() AS INT);
 END;
 /*=========================================================*/
-
+go
 CREATE OR ALTER PROCEDURE sp_AddOrderDetail
 (
     @OrderId INT,
@@ -1304,7 +1303,6 @@ END
 GO
 
 /*=========================================================*/
-
 CREATE OR ALTER PROCEDURE sp_GetAllOrders
 AS
 BEGIN
@@ -1317,13 +1315,11 @@ BEGIN
         u.Email,
         o.OrderDate,
         o.TotalAmount,
+        o.ShippingAddress,
         o.Status
-
     FROM Orders o
-
     INNER JOIN Users u
-        ON o.UserId=u.UserId
-
+        ON o.UserId = u.UserId
     ORDER BY o.OrderDate DESC;
 END
 GO
@@ -1457,7 +1453,6 @@ GO
 /*=========================================================
                 REGISTER USER
 =========================================================*/
-
 CREATE OR ALTER PROCEDURE sp_RegisterUser
 (
     @UserName VARCHAR(100),
@@ -1498,7 +1493,6 @@ GO
 /*=========================================================
                 LOGIN USER
 =========================================================*/
-
 CREATE OR ALTER PROCEDURE sp_LoginUser
 (
     @Email VARCHAR(255)
@@ -1513,12 +1507,13 @@ BEGIN
         Email,
         PasswordHash,
         Role,
+        LoginProvider,
         IsVerified,
         VerificationCode,
         GoogleId,
         FacebookId
     FROM Users
-    WHERE Email=@Email;
+    WHERE Email = @Email;
 END
 GO
 /*=========================================================
@@ -1599,6 +1594,10 @@ GO
 /*=========================================================
                 DELETE USER
 =========================================================*/
+
+select * from users;
+DELETE FROM Users
+WHERE UserId = 6;
 
 CREATE OR ALTER PROCEDURE sp_DeleteUser
 (
