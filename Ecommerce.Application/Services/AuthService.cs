@@ -26,14 +26,26 @@ namespace Ecommerce.Application.Services
 
         public async Task<bool> RegisterAsync(RegisterDto dto)
         {
+            // 1. Check if email already exists
+            var existingUser =
+                await _authRepository.GetUserByEmailAsync(dto.Email);
+
+            // 2. If user exists, stop registration
+            if (existingUser != null)
+            {
+                return false;
+            }
+
+            // 3. Generate verification code
             var code = new Random()
                 .Next(100000, 999999)
                 .ToString();
 
-            // Hash the password ONCE
+            // 4. Hash password
             var passwordHash =
                 BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
+            // 5. Store pending user in Redis
             var pendingUser = new PendingUserDto
             {
                 UserName = dto.UserName,
@@ -46,6 +58,7 @@ namespace Ecommerce.Application.Services
                 dto.Email,
                 pendingUser);
 
+            // 6. Send verification email
             await _emailService.SendVerificationEmailAsync(
                 dto.Email,
                 code);

@@ -31,12 +31,11 @@ namespace Ecommerce.API.Controllers
             var result = await _authService.RegisterAsync(dto);
 
             if (!result)
-                return BadRequest("Registration failed.");
-
-            return Ok(new
             {
-                Message = "Verification code sent to your email."
-            });
+                return BadRequest("Email is already registered.");
+            }
+
+            return Ok("Verification code sent to your email.");
         }
 
         // ==========================
