@@ -1,5 +1,4 @@
 import ProductCard from "./ProductCard";
-import ad from "../assets/ad.svg";
 
 const ProductGrid = ({ products, reviews }) => {
   return (
@@ -13,8 +12,6 @@ const ProductGrid = ({ products, reviews }) => {
           />
         ))}
       </div>
-
-      <img src={ad} alt="Banner" className="rounded-2xl w-full mt-5 mb-5" />
     </>
   );
 };

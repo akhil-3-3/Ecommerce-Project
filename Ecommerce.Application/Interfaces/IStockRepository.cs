@@ -12,6 +12,6 @@ namespace Ecommerce.Application.Interfaces
 
         Task<int> UpdateStockAsync(UpdateStockDto dto);
 
-        Task<int> DeleteStockAsync(int stockId);
+        Task<int> DeleteStockAsync(int productId);
     }
 }

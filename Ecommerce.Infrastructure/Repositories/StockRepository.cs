@@ -13,6 +13,10 @@ namespace Ecommerce.Infrastructure.Repositories
         {
         }
 
+        // ==========================
+        // GET ALL STOCK
+        // ==========================
+
         public async Task<IEnumerable<StockResponseDto>> GetAllStockAsync()
         {
             using var connection = GetConnection();
@@ -21,6 +25,10 @@ namespace Ecommerce.Infrastructure.Repositories
                 "sp_GetAllStock",
                 commandType: CommandType.StoredProcedure);
         }
+
+        // ==========================
+        // GET STOCK BY PRODUCT
+        // ==========================
 
         public async Task<StockResponseDto?> GetStockByProductIdAsync(int productId)
         {
@@ -34,6 +42,10 @@ namespace Ecommerce.Infrastructure.Repositories
                 },
                 commandType: CommandType.StoredProcedure);
         }
+
+        // ==========================
+        // ADD STOCK
+        // ==========================
 
         public async Task<int> AddStockAsync(AddStockDto dto)
         {
@@ -49,6 +61,10 @@ namespace Ecommerce.Infrastructure.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
+        // ==========================
+        // UPDATE STOCK
+        // ==========================
+
         public async Task<int> UpdateStockAsync(UpdateStockDto dto)
         {
             using var connection = GetConnection();
@@ -57,14 +73,17 @@ namespace Ecommerce.Infrastructure.Repositories
                 "sp_UpdateStock",
                 new
                 {
-                    dto.StockId,
                     dto.ProductId,
                     dto.Quantity
                 },
                 commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<int> DeleteStockAsync(int stockId)
+        // ==========================
+        // DELETE STOCK
+        // ==========================
+
+        public async Task<int> DeleteStockAsync(int productId)
         {
             using var connection = GetConnection();
 
@@ -72,7 +91,7 @@ namespace Ecommerce.Infrastructure.Repositories
                 "sp_DeleteStock",
                 new
                 {
-                    StockId = stockId
+                    ProductId = productId
                 },
                 commandType: CommandType.StoredProcedure);
         }

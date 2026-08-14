@@ -62,15 +62,15 @@ namespace Ecommerce.API.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{stockId}")]
-        public async Task<IActionResult> DeleteStock(int stockId)
+        [HttpDelete("{productId}")]
+        public async Task<IActionResult> DeleteStock(int productId)
         {
-            var rowsAffected = await _stockService.DeleteStockAsync(stockId);
+            var rows = await _stockService.DeleteStockAsync(productId);
 
-            if (rowsAffected == 0)
+            if (rows == 0)
                 return NotFound();
 
             return Ok("Stock deleted successfully.");
-        }
+        }   
     }
 }

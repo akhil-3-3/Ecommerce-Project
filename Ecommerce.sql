@@ -4,7 +4,7 @@ DROP DATABASE Ecommerce_DB ;
 
 USE Ecommerce_DB;
 GO
-select * from orders;
+select * from Orders;
 SELECT name
 FROM sys.types
 WHERE is_table_type = 1;

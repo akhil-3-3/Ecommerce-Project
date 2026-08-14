@@ -13,12 +13,14 @@ import { addToCart } from "../api/cartApi";
 import { addToWishlist } from "../api/wishlistApi";
 import { useNavigate } from "react-router-dom";
 import { getReviewsByProduct } from "../api/reviewApi";
+import { getStocks } from "../api/stockApi";
 
 function ProductDetails() {
   const { id } = useParams();
 
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [stock, setStock] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(0);
@@ -46,10 +48,21 @@ function ProductDetails() {
       setLoading(true);
       setError("");
 
-      const data = await getProductById(id);
+      const [productData, stocksData] = await Promise.all([
+        getProductById(id),
+        getStocks(),
+      ]);
 
-      setProduct(data);
+      setProduct(productData);
+
+      const productStock = stocksData.find(
+        (item) => item.productId === Number(id),
+      );
+
+      setStock(productStock ? productStock.quantity : 0);
+
       setSelectedImage(0);
+      setQuantity(1);
     } catch (err) {
       console.error(err);
       setError("Unable to load product.");
@@ -57,9 +70,14 @@ function ProductDetails() {
       setLoading(false);
     }
   };
-
   const increaseQuantity = () => {
-    setQuantity((prev) => prev + 1);
+    setQuantity((prev) => {
+      if (prev >= stock) {
+        return prev;
+      }
+
+      return prev + 1;
+    });
   };
 
   const decreaseQuantity = () => {
@@ -174,6 +192,14 @@ function ProductDetails() {
             <p>
               <span className="font-semibold">Gender:</span> {product.gender}
             </p>
+            <p>
+              <span className="font-semibold">Stock:</span>{" "}
+              {stock > 0 ? (
+                <span className="text-green-600">{stock} available</span>
+              ) : (
+                <span className="text-red-600">Out of stock</span>
+              )}
+            </p>
           </div>
 
           {/* Price */}
@@ -213,7 +239,12 @@ function ProductDetails() {
               <button
                 type="button"
                 onClick={increaseQuantity}
-                className="p-3 hover:bg-gray-100"
+                disabled={quantity >= stock}
+                className={`p-3 ${
+                  quantity >= stock
+                    ? "cursor-not-allowed text-gray-300"
+                    : "hover:bg-gray-100"
+                }`}
               >
                 <Plus size={16} />
               </button>
@@ -224,6 +255,7 @@ function ProductDetails() {
           <div className="mt-8 flex items-center gap-3">
             <button
               type="button"
+              disabled={stock === 0}
               onClick={() =>
                 navigate("/checkout", {
                   state: {
@@ -232,14 +264,20 @@ function ProductDetails() {
                   },
                 })
               }
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-3 text-white font-medium hover:bg-green-700"
+              className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-3 font-medium text-white ${
+                stock === 0
+                  ? "cursor-not-allowed bg-gray-400"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
             >
               <ShoppingBag size={18} />
-              Buy Now
+
+              {stock === 0 ? "Out of Stock" : "Buy Now"}
             </button>
 
             <button
               type="button"
+              disabled={stock === 0}
               onClick={async () => {
                 try {
                   await addToCart(product.productId, quantity);
@@ -249,10 +287,15 @@ function ProductDetails() {
                   alert("Unable to add to cart");
                 }
               }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-black px-5 py-3 text-white font-medium hover:bg-gray-800"
+              className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-3 font-medium text-white ${
+                stock === 0
+                  ? "cursor-not-allowed bg-gray-400"
+                  : "bg-black hover:bg-gray-800"
+              }`}
             >
               <ShoppingCart size={18} />
-              Add To Cart
+
+              {stock === 0 ? "Out of Stock" : "Add To Cart"}
             </button>
 
             <button

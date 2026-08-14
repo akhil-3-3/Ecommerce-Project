@@ -3,10 +3,23 @@ import { getCategories } from "../api/categoryApi";
 
 function Filter({ onFilterChange }) {
   const [categories, setCategories] = useState([]);
-  const [selectedFilters, setSelectedFilters] = useState([]);
+
+  // Restore previously selected filters
+  const [selectedFilters, setSelectedFilters] = useState(() => {
+    const savedFilters = sessionStorage.getItem("selectedFilters");
+
+    return savedFilters ? JSON.parse(savedFilters) : [];
+  });
 
   useEffect(() => {
     loadCategories();
+  }, []);
+
+  // Tell Products.jsx about the restored filters
+  useEffect(() => {
+    if (onFilterChange) {
+      onFilterChange(selectedFilters);
+    }
   }, []);
 
   const loadCategories = async () => {
@@ -27,8 +40,13 @@ function Filter({ onFilterChange }) {
       updatedFilters = [...selectedFilters, categoryName];
     }
 
+    // Update React state
     setSelectedFilters(updatedFilters);
 
+    // Save filters
+    sessionStorage.setItem("selectedFilters", JSON.stringify(updatedFilters));
+
+    // Send filters to Products.jsx
     if (onFilterChange) {
       onFilterChange(updatedFilters);
     }

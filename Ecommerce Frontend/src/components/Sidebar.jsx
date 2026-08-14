@@ -7,7 +7,10 @@ import Brands from "./Brands";
 const Sidebar = ({
   onFilterChange,
   onRatingChange,
+
+  selectedBrands,
   onBrandChange,
+
   includeOutOfStock,
   setIncludeOutOfStock,
 }) => {
@@ -22,7 +25,7 @@ const Sidebar = ({
         setIncludeOutOfStock={setIncludeOutOfStock}
       />
 
-      <Brands onBrandChange={onBrandChange} />
+      <Brands selectedBrands={selectedBrands} onBrandChange={onBrandChange} />
     </div>
   );
 };

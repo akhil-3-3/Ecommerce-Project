@@ -3,15 +3,29 @@ import star from "../assets/star.svg";
 import dullstar from "../assets/dullstar.svg";
 
 const Rating = ({ onRatingChange }) => {
-  const [selectedRating, setSelectedRating] = useState(null);
+  // Restore selected rating when coming back to Products page
+  const [selectedRating, setSelectedRating] = useState(() => {
+    const savedRating = sessionStorage.getItem("selectedRating");
+
+    return savedRating ? Number(savedRating) : null;
+  });
 
   const ratings = [5, 4, 3, 2, 1];
 
   const handleChange = (rating) => {
     const newRating = selectedRating === rating ? null : rating;
 
+    // Update React state
     setSelectedRating(newRating);
 
+    // Save / remove from sessionStorage
+    if (newRating === null) {
+      sessionStorage.removeItem("selectedRating");
+    } else {
+      sessionStorage.setItem("selectedRating", newRating);
+    }
+
+    // Send to Products.jsx
     if (onRatingChange) {
       onRatingChange(newRating);
     }

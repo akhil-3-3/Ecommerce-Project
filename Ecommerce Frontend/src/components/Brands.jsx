@@ -1,8 +1,4 @@
-import { useState } from "react";
-
-const Brands = ({ onBrandChange }) => {
-  const [selectedBrands, setSelectedBrands] = useState([]);
-
+function Brands({ selectedBrands = [], onBrandChange }) {
   const brands = [
     "Creed",
     "Dior",
@@ -19,15 +15,11 @@ const Brands = ({ onBrandChange }) => {
       ? selectedBrands.filter((item) => item !== brand)
       : [...selectedBrands, brand];
 
-    setSelectedBrands(updatedBrands);
-
-    if (onBrandChange) {
-      onBrandChange(updatedBrands);
-    }
+    onBrandChange(updatedBrands);
   };
 
   return (
-    <div className="w-70 rounded-lg border bg-white p-6 space-y-3 text-sm h-fit mt-4 shadow-2xl border-gray-50">
+    <div className="w-70 rounded-lg border border-gray-50 bg-white p-6 space-y-3 text-sm h-fit mt-4 shadow-2xl">
       <h2 className="mb-6 text-2xl font-semibold">Brands</h2>
 
       {brands.map((brand) => (
@@ -36,9 +28,10 @@ const Brands = ({ onBrandChange }) => {
             type="checkbox"
             checked={selectedBrands.includes(brand)}
             onChange={() => handleChange(brand)}
+            className="h-4 w-4 accent-blue-600"
           />
 
-          {brand}
+          <span>{brand}</span>
         </label>
       ))}
 
@@ -47,6 +40,6 @@ const Brands = ({ onBrandChange }) => {
       </button>
     </div>
   );
-};
+}
 
 export default Brands;
